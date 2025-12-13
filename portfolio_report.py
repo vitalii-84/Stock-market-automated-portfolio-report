@@ -7,6 +7,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import plotly.express as px
 import requests
+import sys
 
 # ===============================
 # Налаштування портфеля
@@ -33,21 +34,29 @@ def send_telegram_message(message: str):
         "text": message,
         "parse_mode": "HTML"
     }
-    requests.post(url, data=payload)
+    try:
+        requests.post(url, data=payload)
+    except Exception as e:
+        print("Помилка при надсиланні Telegram повідомлення:", e)
 
 # ===============================
 # Завантаження даних
 # ===============================
 tickers = list(holdings.keys())
-end_date = datetime.today()
-start_date = end_date - timedelta(days=7)  # останні 7 днів
+end_date = datetime.today() - timedelta(days=1)  # завантажуємо до вчорашнього дня
+start_date = end_date - timedelta(days=7)
 
-# Завантажуємо історію котирувань
-data = yf.download(tickers, start=start_date.strftime('%Y-%m-%d'), 
-                   end=end_date.strftime('%Y-%m-%d'))
+data = yf.download(
+    tickers,
+    start=start_date.strftime('%Y-%m-%d'),
+    end=end_date.strftime('%Y-%m-%d'),
+    auto_adjust=True
+)
 
-if data.empty or 'Adj Close' not in data.columns:
-    raise ValueError("Дані не були завантажені. Перевірте тикери або діапазон дат.")
+# Перевірка завантаження даних
+if data.empty:
+    send_telegram_message("⚠️ Дані для портфеля не були завантажені. Можливо, сьогодні вихідний на біржі.")
+    sys.exit(0)
 
 # ===============================
 # Обробка даних
@@ -67,27 +76,32 @@ adj_close_long = pd.melt(
 # Додаємо вартість позицій для кожної акції
 adj_close_long['Position_Value'] = adj_close_long['Adj_Close'] * adj_close_long['Ticker'].map(holdings)
 
-# Обчислюємо загальну вартість портфеля по кожній даті
+# Загальна вартість портфеля
 total_value = adj_close_long.groupby('Date')['Position_Value'].sum().reset_index()
 total_value.rename(columns={'Position_Value': 'Total_Value'}, inplace=True)
 
 # Додаємо Total Value у long DataFrame для графіка
 total_long = total_value.copy()
 total_long['Ticker'] = 'Total Value'
-total_long.rename(columns={'Total_Value': 'Adj_Close',}, inplace=True)
+total_long.rename(columns={'Total_Value': 'Adj_Close'}, inplace=True)
 
 plot_df = pd.concat([adj_close_long[['Date','Ticker','Adj_Close']], total_long], ignore_index=True)
 
 # ===============================
 # Побудова графіка
 # ===============================
-fig = px.line(plot_df, x='Date', y='Adj_Close', color='Ticker',
-              title="Динаміка вартості портфеля та акцій")
+fig = px.line(
+    plot_df,
+    x='Date',
+    y='Adj_Close',
+    color='Ticker',
+    title="Динаміка вартості портфеля та акцій"
+)
 fig.update_layout(
     yaxis_title="Вартість ($)",
     xaxis_title="Дата"
 )
-fig.write_html("portfolio_plot.html")  # зберігаємо графік у файл
+fig.write_html("portfolio_plot.html")  # зберігаємо графік у HTML
 
 # ===============================
 # Розрахунок відсоткової зміни Total Value
