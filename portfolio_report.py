@@ -37,13 +37,13 @@ def send_telegram_message(message: str):
     try:
         requests.post(url, data=payload)
     except Exception as e:
-        print("Помилка при надсиланні Telegram повідомлення:", e)
+        print("Помилка при відправці Telegram:", e)
 
 # ===============================
 # Завантаження даних
 # ===============================
 tickers = list(holdings.keys())
-end_date = datetime.today() - timedelta(days=1)  # завантажуємо до вчорашнього дня
+end_date = datetime.today() - timedelta(days=1)
 start_date = end_date - timedelta(days=7)
 
 data = yf.download(
@@ -53,7 +53,7 @@ data = yf.download(
     auto_adjust=True
 )
 
-# Перевірка завантаження даних
+# Перевірка завантаження
 if data.empty:
     send_telegram_message("⚠️ Дані для портфеля не були завантажені. Можливо, сьогодні вихідний на біржі.")
     sys.exit(0)
@@ -61,7 +61,14 @@ if data.empty:
 # ===============================
 # Обробка даних
 # ===============================
-adj_close = data['Adj Close'].copy()
+# Для нових версій yfinance
+try:
+    adj_close = data['Adj Close'].copy()
+except KeyError:
+    # Якщо MultiIndex, дістаємо всі тикери для 'Adj Close'
+    adj_close = data.loc[:, ('Adj Close', slice(None))].copy()
+    adj_close.columns = adj_close.columns.droplevel(0)  # залишаємо тільки назви тикерів
+
 adj_close = adj_close.reset_index()
 
 # Перетворюємо у формат long для побудови графіка
@@ -76,7 +83,7 @@ adj_close_long = pd.melt(
 # Додаємо вартість позицій для кожної акції
 adj_close_long['Position_Value'] = adj_close_long['Adj_Close'] * adj_close_long['Ticker'].map(holdings)
 
-# Загальна вартість портфеля
+# Обчислюємо загальну вартість портфеля по кожній даті
 total_value = adj_close_long.groupby('Date')['Position_Value'].sum().reset_index()
 total_value.rename(columns={'Position_Value': 'Total_Value'}, inplace=True)
 
@@ -90,18 +97,13 @@ plot_df = pd.concat([adj_close_long[['Date','Ticker','Adj_Close']], total_long],
 # ===============================
 # Побудова графіка
 # ===============================
-fig = px.line(
-    plot_df,
-    x='Date',
-    y='Adj_Close',
-    color='Ticker',
-    title="Динаміка вартості портфеля та акцій"
-)
+fig = px.line(plot_df, x='Date', y='Adj_Close', color='Ticker',
+              title="Динаміка вартості портфеля та акцій")
 fig.update_layout(
     yaxis_title="Вартість ($)",
     xaxis_title="Дата"
 )
-fig.write_html("portfolio_plot.html")  # зберігаємо графік у HTML
+fig.write_html("portfolio_plot.html")  # зберігаємо графік у файл
 
 # ===============================
 # Розрахунок відсоткової зміни Total Value
