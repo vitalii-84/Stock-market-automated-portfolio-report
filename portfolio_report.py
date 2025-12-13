@@ -7,7 +7,6 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import plotly.express as px
 import requests
-import sys
 
 # ===============================
 # Налаштування портфеля
@@ -40,38 +39,36 @@ def send_telegram_message(message: str):
         print("Помилка при відправці Telegram:", e)
 
 # ===============================
-# Завантаження даних
+# Завантаження даних за останні 7 днів
 # ===============================
 tickers = list(holdings.keys())
-end_date = datetime.today() - timedelta(days=1)
+end_date = datetime.today()
 start_date = end_date - timedelta(days=7)
 
-data = yf.download(
-    tickers,
-    start=start_date.strftime('%Y-%m-%d'),
-    end=end_date.strftime('%Y-%m-%d'),
-    auto_adjust=True
-)
-
-# Перевірка завантаження
-if data.empty:
-    send_telegram_message("⚠️ Дані для портфеля не були завантажені. Можливо, сьогодні вихідний на біржі.")
-    sys.exit(0)
+# Завантажуємо історію котирувань
+data = yf.download(tickers, start=start_date.strftime('%Y-%m-%d'), 
+                   end=end_date.strftime('%Y-%m-%d'), auto_adjust=True)
 
 # ===============================
-# Обробка даних
+# Обробка даних - отримання скоригованих цін закриття
 # ===============================
-# Для нових версій yfinance
-try:
+if 'Adj Close' in data.columns:
+    # звичайний DataFrame
     adj_close = data['Adj Close'].copy()
-except KeyError:
-    # Якщо MultiIndex, дістаємо всі тикери для 'Adj Close'
-    adj_close = data.loc[:, ('Adj Close', slice(None))].copy()
-    adj_close.columns = adj_close.columns.droplevel(0)  # залишаємо тільки назви тикерів
+elif isinstance(data.columns, pd.MultiIndex):
+    try:
+        adj_close = data.loc[:, ('Adj Close', slice(None))].copy()
+        adj_close.columns = adj_close.columns.droplevel(0)  # залишаємо тільки назви тикерів
+    except KeyError:
+        raise ValueError("Дані не містять 'Adj Close'. Перевірте тикери або діапазон дат.")
+else:
+    raise ValueError("Невідома структура DataFrame від yfinance.")
 
 adj_close = adj_close.reset_index()
 
-# Перетворюємо у формат long для побудови графіка
+# ===============================
+# Перетворення у long формат для графіка
+# ===============================
 adj_close_long = pd.melt(
     adj_close,
     id_vars='Date',
@@ -80,10 +77,14 @@ adj_close_long = pd.melt(
     value_name='Adj_Close'
 )
 
+# ===============================
 # Додаємо вартість позицій для кожної акції
+# ===============================
 adj_close_long['Position_Value'] = adj_close_long['Adj_Close'] * adj_close_long['Ticker'].map(holdings)
 
+# ===============================
 # Обчислюємо загальну вартість портфеля по кожній даті
+# ===============================
 total_value = adj_close_long.groupby('Date')['Position_Value'].sum().reset_index()
 total_value.rename(columns={'Position_Value': 'Total_Value'}, inplace=True)
 
