@@ -26,3 +26,12 @@ jobs:
       - name: Run portfolio report
         run: |
           python portfolio_report.py
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-report
+          path: |
+            portfolio_report.csv
+            portfolio_chart.html
+
