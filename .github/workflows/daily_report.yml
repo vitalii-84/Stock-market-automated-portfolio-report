@@ -1,0 +1,27 @@
+name: Daily Portfolio Report
+
+on:
+  schedule:
+    - cron: "30 22 * * 0-6"   # Пн–Нд о 22:30 UTC (00:30 по Києву)
+  workflow_dispatch:        # ручний запуск кнопкою
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas yfinance plotly
+
+      - name: Run portfolio report
+        run: |
+          python portfolio_report.py
