@@ -1,0 +1,41 @@
+name: Daily Portfolio Report
+
+# ⚡ Автоматичний запуск
+on:
+  schedule:
+    - cron: "0 23 * * *"  # щодня о 23:00 UTC (01:00 по Києву)
+  workflow_dispatch:       # ручний запуск кнопкою
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Отримати код з репозиторію
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Налаштування Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3️⃣ Встановлюємо бібліотеки
+      - name: Install dependencies
+        run: |
+          pip install pandas yfinance plotly requests
+
+      # 4️⃣ Виконуємо скрипт
+      - name: Run portfolio report
+        run: |
+          python portfolio_report.py
+
+      # 5️⃣ Зберігаємо CSV і графік як artifact
+      - name: Upload portfolio report
+        uses: actions/upload-artifact@v3
+        with:
+          name: portfolio-report
+          path: |
+            portfolio_report.csv
+            portfolio_plot.html
