@@ -33,9 +33,10 @@ jobs:
 
       # 5️⃣ Зберігаємо CSV і графік як artifact
       - name: Upload portfolio report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: portfolio-report
           path: |
             portfolio_report.csv
             portfolio_plot.html
+
