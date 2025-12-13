@@ -17,6 +17,8 @@ holdings = {
     'TEAM': 7,
 }
 
+tickers = list(holdings.keys())
+
 # ===============================
 # Налаштування Telegram бота
 # ===============================
@@ -33,73 +35,62 @@ def send_telegram_message(message: str):
         "text": message,
         "parse_mode": "HTML"
     }
-    try:
-        requests.post(url, data=payload)
-    except Exception as e:
-        print("Помилка при відправці Telegram:", e)
+    requests.post(url, data=payload)
 
 # ===============================
-# Завантаження даних за останні 7 днів
+# Завантаження даних
 # ===============================
-tickers = list(holdings.keys())
 end_date = datetime.today()
-start_date = end_date - timedelta(days=7)
+start_date = end_date - timedelta(days=7)  # останні 7 днів
 
-# Завантажуємо історію котирувань
-data = yf.download(tickers, start=start_date.strftime('%Y-%m-%d'), 
-                   end=end_date.strftime('%Y-%m-%d'), auto_adjust=True)
+data = yf.download(
+    tickers,
+    start=start_date.strftime('%Y-%m-%d'),
+    end=end_date.strftime('%Y-%m-%d'),
+    auto_adjust=True  # отримуємо скориговані ціни
+)
 
-# ===============================
-# Обробка даних - отримання скоригованих цін закриття
-# ===============================
-if 'Adj Close' in data.columns:
-    # звичайний DataFrame
-    adj_close = data['Adj Close'].copy()
-elif isinstance(data.columns, pd.MultiIndex):
-    try:
-        adj_close = data.loc[:, ('Adj Close', slice(None))].copy()
-        adj_close.columns = adj_close.columns.droplevel(0)  # залишаємо тільки назви тикерів
-    except KeyError:
-        raise ValueError("Дані не містять 'Adj Close'. Перевірте тикери або діапазон дат.")
-else:
-    raise ValueError("Невідома структура DataFrame від yfinance.")
-
-adj_close = adj_close.reset_index()
+if data.empty or 'Close' not in data.columns:
+    raise ValueError("Дані не були завантажені. Перевірте тикери або діапазон дат.")
 
 # ===============================
-# Перетворення у long формат для графіка
+# Обробка даних
 # ===============================
-adj_close_long = pd.melt(
-    adj_close,
+close_prices = data['Close'].reset_index()
+
+# Перетворюємо у long формат для графіка
+close_long = pd.melt(
+    close_prices,
     id_vars='Date',
     value_vars=tickers,
     var_name='Ticker',
-    value_name='Adj_Close'
+    value_name='Close'
 )
 
-# ===============================
-# Додаємо вартість позицій для кожної акції
-# ===============================
-adj_close_long['Position_Value'] = adj_close_long['Adj_Close'] * adj_close_long['Ticker'].map(holdings)
+# Додаємо вартість кожної позиції
+close_long['Position_Value'] = close_long['Close'] * close_long['Ticker'].map(holdings)
 
-# ===============================
-# Обчислюємо загальну вартість портфеля по кожній даті
-# ===============================
-total_value = adj_close_long.groupby('Date')['Position_Value'].sum().reset_index()
+# Загальна вартість портфеля по датах
+total_value = close_long.groupby('Date')['Position_Value'].sum().reset_index()
 total_value.rename(columns={'Position_Value': 'Total_Value'}, inplace=True)
 
 # Додаємо Total Value у long DataFrame для графіка
 total_long = total_value.copy()
 total_long['Ticker'] = 'Total Value'
-total_long.rename(columns={'Total_Value': 'Adj_Close'}, inplace=True)
+total_long.rename(columns={'Total_Value': 'Close'}, inplace=True)
 
-plot_df = pd.concat([adj_close_long[['Date','Ticker','Adj_Close']], total_long], ignore_index=True)
+plot_df = pd.concat([close_long[['Date','Ticker','Close']], total_long], ignore_index=True)
 
 # ===============================
 # Побудова графіка
 # ===============================
-fig = px.line(plot_df, x='Date', y='Adj_Close', color='Ticker',
-              title="Динаміка вартості портфеля та акцій")
+fig = px.line(
+    plot_df,
+    x='Date',
+    y='Close',
+    color='Ticker',
+    title="Динаміка вартості портфеля та акцій"
+)
 fig.update_layout(
     yaxis_title="Вартість ($)",
     xaxis_title="Дата"
