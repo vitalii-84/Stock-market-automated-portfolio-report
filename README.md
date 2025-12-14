@@ -53,8 +53,7 @@
 └── .github/
     └── workflows/
         └── daily_portfolio.yml  # GitHub Actions workflow
-```text
-
+```
 ---
 
 ## 🛠 Стек технологій
