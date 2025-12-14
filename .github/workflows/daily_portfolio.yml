@@ -38,8 +38,10 @@ jobs:
       # Запуск скрипта портфеля
       # ===============================
       - name: Run portfolio report
-        run: |
-          python portfolio_report.py
+        run: python portfolio_report.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
       # ===============================
       # Завантаження файлів як артефактів
