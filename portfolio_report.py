@@ -22,8 +22,14 @@ tickers = list(holdings.keys())
 # ===============================
 # Налаштування Telegram бота
 # ===============================
-bot_token = "8316612047:AAGRPfyKZyjKg_q3rEWavf2RiO9EBhydHmo"
-chat_id = 6241484631  # твій chat_id з getUpdates
+import os
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+if not BOT_TOKEN or not CHAT_ID:
+    raise ValueError("Telegram credentials are not set in environment variables")
+
 
 def send_telegram_message(message: str):
     """
