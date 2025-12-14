@@ -39,19 +39,21 @@ def send_telegram_message(message: str):
         "text": message,
         "parse_mode": "HTML"
     }
-    requests.post(url, data=payload)
+    response = requests.post(url, data=payload)
+    if not response.ok:
+        print("❌ Помилка надсилання Telegram повідомлення:", response.text)
 
 # ===============================
-# Завантаження даних
+# Завантаження даних за останні 7 днів
 # ===============================
 end_date = datetime.today()
-start_date = end_date - timedelta(days=7)  # останні 7 днів
+start_date = end_date - timedelta(days=7)
 
 data = yf.download(
     tickers,
     start=start_date.strftime('%Y-%m-%d'),
     end=end_date.strftime('%Y-%m-%d'),
-    auto_adjust=True  # отримуємо скориговані ціни
+    auto_adjust=True  # скориговані ціни
 )
 
 if data.empty or 'Close' not in data.columns:
@@ -71,7 +73,7 @@ close_long = pd.melt(
     value_name='Close'
 )
 
-# Додаємо вартість кожної позиції
+# Вартість кожної позиції
 close_long['Position_Value'] = close_long['Close'] * close_long['Ticker'].map(holdings)
 
 # Загальна вартість портфеля по датах
@@ -99,17 +101,17 @@ fig.update_layout(
     yaxis_title="Вартість ($)",
     xaxis_title="Дата"
 )
-fig.write_html("portfolio_plot.html")  # зберігаємо графік у файл
+fig.write_html("portfolio_plot.html")
 
 # ===============================
 # Розрахунок відсоткової зміни Total Value
 # ===============================
 if len(total_value) >= 2:
-    today_val = total_value['Close'].iloc[-1]
-    prev_val = total_value['Close'].iloc[-2]
+    today_val = total_value['Total_Value'].iloc[-1]
+    prev_val = total_value['Total_Value'].iloc[-2]
     change_pct = (today_val - prev_val) / prev_val * 100
 else:
-    today_val = total_value['Close'].iloc[-1]
+    today_val = total_value['Total_Value'].iloc[-1]
     change_pct = 0
 
 # ===============================
