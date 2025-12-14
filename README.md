@@ -54,6 +54,8 @@
     └── workflows/
         └── daily_portfolio.yml  # GitHub Actions workflow
 
+---
+
 ## 🛠 Стек технологій
 
 - **Python 3.11**
