@@ -7,6 +7,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import plotly.express as px
 import requests
+import os
 
 # ===============================
 # Налаштування портфеля
@@ -20,24 +21,21 @@ holdings = {
 tickers = list(holdings.keys())
 
 # ===============================
-# Налаштування Telegram бота
+# Налаштування Telegram бота через GitHub Secrets
 # ===============================
-import os
-
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 if not BOT_TOKEN or not CHAT_ID:
     raise ValueError("Telegram credentials are not set in environment variables")
 
-
 def send_telegram_message(message: str):
     """
     Надсилає повідомлення в Telegram
     """
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
-        "chat_id": chat_id,
+        "chat_id": CHAT_ID,
         "text": message,
         "parse_mode": "HTML"
     }
@@ -107,11 +105,11 @@ fig.write_html("portfolio_plot.html")  # зберігаємо графік у ф
 # Розрахунок відсоткової зміни Total Value
 # ===============================
 if len(total_value) >= 2:
-    today_val = total_value['Total_Value'].iloc[-1]
-    prev_val = total_value['Total_Value'].iloc[-2]
+    today_val = total_value['Close'].iloc[-1]
+    prev_val = total_value['Close'].iloc[-2]
     change_pct = (today_val - prev_val) / prev_val * 100
 else:
-    today_val = total_value['Total_Value'].iloc[-1]
+    today_val = total_value['Close'].iloc[-1]
     change_pct = 0
 
 # ===============================
