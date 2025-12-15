@@ -1,4 +1,4 @@
-name: Daily Portfolio Report
+name: Daily Report
 
 on:
   schedule:
