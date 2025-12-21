@@ -1,3 +1,12 @@
+![GitHub Actions](https://github.com/vitalii-84/Stock-market-automated-portfolio-report/actions/workflows/daily_portfolio.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
+![Automation](https://img.shields.io/badge/automation-GitHub%20Actions-success)
+![Pandas](https://img.shields.io/badge/pandas-data%20analysis-blue)
+![Plotly](https://img.shields.io/badge/plotly-visualization-orange)
+![Telegram](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)
+
+
+
 # 📊 Automated Stock Portfolio Report
 
 Автоматизований проєкт для щоденного моніторингу вартості інвестиційного портфеля акцій з використанням Python та GitHub Actions.
