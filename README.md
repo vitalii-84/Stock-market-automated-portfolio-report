@@ -1,9 +1,19 @@
-![GitHub Actions](https://github.com/vitalii-84/Stock-market-automated-portfolio-report/actions/workflows/daily_portfolio.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.11-blue.svg)
-![Automation](https://img.shields.io/badge/automation-GitHub%20Actions-success)
-![Pandas](https://img.shields.io/badge/pandas-data%20analysis-blue)
-![Plotly](https://img.shields.io/badge/plotly-visualization-orange)
-![Telegram](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)
+[![Pipeline](https://img.shields.io/badge/pipeline-production--like-4c1?style=flat)](https://github.com/vitalii-84/Stock-market-automated-portfolio-report/actions)
+[![GitHub Actions](https://github.com/vitalii-84/Stock-market-automated-portfolio-report/actions/workflows/daily_portfolio.yml/badge.svg)](https://github.com/vitalii-84/Stock-market-automated-portfolio-report/actions/workflows/daily_portfolio.yml)
+[![Last run](https://img.shields.io/github/actions/workflow/status/vitalii-84/Stock-market-automated-portfolio-report/daily_portfolio.yml?label=last%20run&color=2ea44f)](https://github.com/vitalii-84/Stock-market-automated-portfolio-report/actions/workflows/daily_portfolio.yml)
+![Scheduled](https://img.shields.io/badge/schedule-daily-2ea44f)
+
+![Portfolio Project](https://img.shields.io/badge/project-portfolio-6f42c1)
+![Role](https://img.shields.io/badge/role-data%20analyst-6f42c1)
+
+![Data Source](https://img.shields.io/badge/data-Yahoo%20Finance-7f3fbf)
+
+![Python](https://img.shields.io/badge/python-3.11-3776ab?logo=python&logoColor=white)
+![Pandas](https://img.shields.io/badge/pandas-data%20analysis-150458)
+![Plotly](https://img.shields.io/badge/plotly-visualization-3f4f75)
+
+![Telegram](https://img.shields.io/badge/alerts-Telegram%20Bot-2ca5e0?logo=telegram&logoColor=white)
+
 
 
 
