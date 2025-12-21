@@ -66,12 +66,11 @@
 ```text
 .
 ├── portfolio_report.py        # Основний Python-скрипт
-├── portfolio_report.csv       # CSV-звіт з історією Total Value
-├── portfolio_plot.html        # Інтерактивний графік динаміки
 ├── README.md                  # Опис проєкту
 └── .github/
     └── workflows/
         └── daily_portfolio.yml  # GitHub Actions workflow
+
 ```
 ---
 
